@@ -1,29 +1,85 @@
 # vinD
 
-`vinD` turns TRIBE brain-activity predictions into a publishable analysis package: per-second engagement metrics, dynamic connectivity states, critical moment detection, report generation, and a lightweight FastAPI viewer.
+Marketing teams spend `$50K+` promoting a video that `60%` of viewers scroll past in the first `3 seconds`.
 
-## What it does
+The editor liked it.  
+The internal team liked it.  
+The focus group of 8 people liked it.
 
-- Analyzes TRIBE prediction arrays shaped `(time, vertices)`.
-- Parcellates fsaverage5 cortical predictions into Schaefer 400 / Yeo 7 network summaries.
-- Computes engagement, arousal, novelty, memorability, connectivity, and state-transition signals.
-- Generates a Markdown report plus plot assets.
-- Optionally calls a deployed Modal TRIBE worker from a local CLI.
-- Includes a small web app for submitting jobs and browsing results.
+But none of them are the average viewer, and most teams cannot afford to run a 500-person study for every cut.
 
-## Requirements
+`vinD` is the idea I built in response to that gap.
 
-- Python `3.12+`
-- `uv` recommended for dependency management
-- TRIBE predictions on `fsaverage5` cortical vertices (`20,484` columns minimum)
+Last week, Meta FAIR released `TRIBE v2`: a model trained on `1,000+` hours of real brain scans from `720` people watching videos, listening to podcasts, and reading text. You give it a piece of content, and it predicts the corresponding fMRI brain response. Not opinions. Not generated reviews. Predicted neural activity, at `20,000+` brain data points per second-level timeline.
+
+Raw brain signals are not useful to a marketing team, so `vinD` adds an interpretation layer on top.
+
+## What vinD does
+
+- Maps `20K+` predicted brain points into `400` known brain regions.
+- Tracks `7` major brain networks across time:
+  visual, emotional, attention, social, cognitive, default mode, and limbic.
+- Measures which networks are coupling in real time:
+  are viewers seeing and feeling, or just passively watching?
+- Classifies every second into a viewer state such as:
+  `eyes locked`, `feeling it`, `personally relating`, `zoning out`, or `confused`.
+- Detects likely memorable moments versus forgettable ones.
+- Produces a second-by-second viewer experience report with plots, moments, and summary metrics.
+
+The result is a simulated audience-response layer for video: engagement curves, emotional peaks, attention drops, memory windows, and possible CTA timing, generated without a traditional focus group.
+
+Think of it as a simulator for `720 average brains` reacting to your content.
+
+## Early result that motivated this repo
+
+On an early marketing-video test:
+
+- Hook strength: `0/100`
+- Emotional engagement: `61/100`
+- The model found an emotional peak at `0:29` that was independently verified
+- Predicted `47%` of viewing time spent in a `personally relating` state
+
+The signal was clear: the opening was dead, even though nobody in review had flagged it.
+
+That is the core thesis behind `vinD`:
+editors evaluate videos based on craft, but viewer brains evaluate videos based on attention, emotion, and personal relevance. Those are not the same thing.
+
+It needs validation against real retention and performance data. But the direction is promising enough to make the workflow concrete.
+
+## Core outputs
+
+Each run can generate:
+
+- `report.md`
+- `plots/timeline_simple.png`
+- `plots/radar.png`
+- `plots/connectivity_simple.png`
+- `plots/coupling_simple.png`
+- `plots/advanced_analysis.png`
+
+These outputs are meant to answer practical questions such as:
+
+- Does the hook actually hold attention?
+- Where does attention collapse?
+- Which seconds create emotional engagement?
+- Where are viewers likely to remember the content?
+- Is the viewer processing, relating, or drifting away?
 
 ## Install
+
+Requirements:
+
+- Python `3.12+`
+- `uv`
+- TRIBE predictions on `fsaverage5` cortical vertices (`20,484` columns minimum)
+
+Install dependencies:
 
 ```bash
 uv sync
 ```
 
-For tests:
+Run tests:
 
 ```bash
 uv run --with pytest pytest
@@ -31,7 +87,7 @@ uv run --with pytest pytest
 
 ## Usage
 
-Run analysis on an existing predictions file:
+Analyze an existing predictions file:
 
 ```bash
 uv run vind-analyze path/to/tribe_preds.npz --output-dir results/demo
@@ -39,69 +95,60 @@ uv run vind-analyze path/to/tribe_preds.npz --output-dir results/demo
 
 The `.npz` file must contain a `preds` array.
 
-Run TRIBE remotely on Modal, then analyze locally:
+Run remote TRIBE inference on Modal, then analyze locally:
 
 ```bash
 uv run vind-tribe "https://www.youtube.com/watch?v=dQw4w9WgXcQ" --output-dir results/demo
 ```
 
-If your deployed Modal names differ, override them:
+If your deployed Modal app uses a different name:
 
 ```bash
 uv run vind-tribe "<video-url>" --modal-app-name my-app --modal-class-name MyPredictor
 ```
 
-Start the web app locally:
+Run the web app:
 
 ```bash
 uv run uvicorn web:app --reload
 ```
 
-## Output
-
-Each run writes:
-
-- `report.md`
-- `plots/`
-- `tribe_preds.npz` when using the Modal client
-
-Typical plot outputs include:
-
-- `timeline_simple.png`
-- `radar.png`
-- `connectivity_simple.png`
-- `coupling_simple.png`
-- `advanced_analysis.png`
-
 ## Modal setup
 
-Create the secret once:
+Create the Hugging Face secret:
 
 ```bash
 modal secret create huggingface-secret HF_TOKEN=hf_your_token
 ```
 
-Deploy the inference app:
+Deploy the inference worker:
 
 ```bash
 modal deploy modal_app.py
 ```
 
-Then call it from `vind-tribe`.
+Then use `vind-tribe` or the web app to call it.
 
-## Publish checklist
+## Current limitations
 
-Before pushing to GitHub:
+- This is not yet validated against large-scale retention or conversion data.
+- The web app keeps job state in memory, so it is suitable for lightweight single-process use, not production queueing.
+- Atlas data is downloaded on first run into the local Nilearn cache.
+- The interpretation layer is the product idea here; the underlying neural prediction model is `TRIBE v2`.
 
-1. Run `uv sync`.
-2. Run `uv run --with pytest pytest`.
-3. Smoke-test one CLI path:
-   `uv run vind-analyze <predictions.npz> --output-dir results/smoke`
-4. If you plan to demo remote inference, verify `modal deploy modal_app.py` succeeds in your account.
-5. Review `git status` so you do not accidentally commit large result files or local caches.
+## Why this matters
 
-## Notes
+Most video review workflows are optimized around taste and craft. `vinD` is an attempt to optimize around predicted audience cognition instead.
 
-- The analysis pipeline now validates input shape early and handles short time series more defensibly.
-- The web app keeps job state in memory, so it is suitable for a lightweight single-process deployment, not a multi-instance queueing setup.
-- Atlas files are downloaded into the local Nilearn cache on first run.
+If that works, the value is straightforward:
+
+- catch weak hooks before media spend
+- find emotional peaks before launch
+- compare edits on attention and memorability, not just preference
+- reduce reliance on tiny, noisy review groups
+
+## Reference
+
+`TRIBE v2` is based on:
+
+- d'Ascoli et al., `2026`, _A foundation model of vision, audition, and language for in-silico neuroscience_ (Meta FAIR)
