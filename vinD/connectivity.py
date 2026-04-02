@@ -18,15 +18,19 @@ def compute_sliding_connectivity(network_ts, T, window_size=10):
     window_centers : np.ndarray (n_windows,)
     connectivity_pairs : dict[str, np.ndarray (n_windows,)]
     """
+    if T < 2:
+        raise ValueError("At least 2 timepoints are required to compute connectivity")
+
+    effective_window = min(window_size, T)
     net_matrix = np.column_stack([network_ts[n] for n in NET_NAMES_ORDERED])
 
-    n_windows = T - window_size + 1
+    n_windows = T - effective_window + 1
     connectivity_matrices = np.zeros((n_windows, 7, 7))
     window_centers = np.zeros(n_windows)
 
     for w in range(n_windows):
         start = w
-        end = w + window_size
+        end = w + effective_window
         window_data = net_matrix[start:end, :]
         if window_data.std(axis=0).min() > 0:
             corr = np.corrcoef(window_data.T)
@@ -68,11 +72,21 @@ def cluster_brain_states(connectivity_matrices, window_centers, T, window_size=1
     state_labels_windows : np.ndarray (n_windows,)
     """
     n_windows = connectivity_matrices.shape[0]
+    if n_windows == 0:
+        raise ValueError("Connectivity input must contain at least one window")
+
+    effective_window = min(window_size, T)
     fc_features = _upper_tri_features(connectivity_matrices)
 
-    best_k = 3
+    if n_windows == 1:
+        state_labels_windows = np.zeros(1, dtype=int)
+        state_labels_per_sec = np.zeros(T, dtype=int)
+        return state_labels_per_sec, 1, state_labels_windows
+
+    best_k = min(3, n_windows)
     best_score = -1
-    k_range = range(2, min(7, n_windows // 3))
+    max_k = min(6, n_windows - 1)
+    k_range = range(2, max_k + 1)
 
     for k in k_range:
         km = KMeans(n_clusters=k, n_init=10, random_state=42)
@@ -93,7 +107,9 @@ def cluster_brain_states(connectivity_matrices, window_centers, T, window_size=1
         if center_sec < T:
             state_labels_per_sec[center_sec] = state_labels_windows[w]
     # Fill edges
-    state_labels_per_sec[: window_size // 2] = state_labels_windows[0]
-    state_labels_per_sec[-(window_size // 2) :] = state_labels_windows[-1]
+    half_window = effective_window // 2
+    if half_window > 0:
+        state_labels_per_sec[:half_window] = state_labels_windows[0]
+        state_labels_per_sec[-half_window:] = state_labels_windows[-1]
 
     return state_labels_per_sec, best_k, state_labels_windows

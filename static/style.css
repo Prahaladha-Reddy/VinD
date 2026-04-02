@@ -1,0 +1,198 @@
+/* vinD — minimal dark */
+
+body { background: #000; }
+
+/* Cards */
+.card {
+    background: #111;
+    border: 1px solid #1a1a1a;
+    border-radius: 12px;
+    transition: border-color 0.2s ease;
+}
+.card:hover { border-color: #333; }
+
+/* Progress */
+.progress-track {
+    height: 3px;
+    background: #1a1a1a;
+    border-radius: 2px;
+    overflow: hidden;
+}
+.progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: #6ee7b7;
+    transition: width 0.6s ease;
+    animation: glow 2s ease-in-out infinite;
+}
+@keyframes glow {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Spinner */
+.spinner {
+    width: 32px;
+    height: 32px;
+    border: 2px solid #1a1a1a;
+    border-top-color: #6ee7b7;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Plot cards */
+.plot-card {
+    background: #111;
+    border: 1px solid #1a1a1a;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+.plot-card:hover {
+    border-color: #333;
+    transform: translateY(-2px);
+}
+.plot-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Report markdown */
+.report-content h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #e5e5e5;
+    margin: 2rem 0 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #1a1a1a;
+}
+.report-content h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #6ee7b7;
+    margin: 1.25rem 0 0.5rem;
+}
+.report-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0;
+    font-size: 0.8rem;
+}
+.report-content th {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    color: #666;
+    font-weight: 500;
+    border-bottom: 1px solid #1a1a1a;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.report-content td {
+    padding: 0.45rem 0.75rem;
+    border-bottom: 1px solid #111;
+    color: #999;
+}
+.report-content tr:hover td { background: #0a0a0a; }
+.report-content td:last-child,
+.report-content th:last-child { text-align: center; }
+.report-content ul, .report-content ol {
+    padding-left: 1.25rem;
+    margin: 0.5rem 0;
+    color: #888;
+}
+.report-content li { margin: 0.2rem 0; }
+.report-content p {
+    color: #777;
+    line-height: 1.6;
+    margin: 0.5rem 0;
+}
+.report-content strong { color: #ccc; }
+.report-content blockquote {
+    border-left: 2px solid #6ee7b7;
+    padding: 0.5rem 1rem;
+    margin: 0.75rem 0;
+    background: #0a0a0a;
+    border-radius: 0 6px 6px 0;
+    color: #999;
+}
+
+/* Lightbox */
+.lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: zoom-out;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+.lightbox-overlay.active { opacity: 1; pointer-events: auto; }
+.lightbox-overlay img {
+    max-width: 92vw;
+    max-height: 90vh;
+    border-radius: 6px;
+}
+
+/* Tabs */
+.tab-btn {
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: #555;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    background: transparent;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+.tab-btn:hover { color: #888; }
+.tab-btn.active {
+    color: #e5e5e5;
+    border-bottom-color: #6ee7b7;
+}
+
+/* Input */
+.url-input {
+    background: #0a0a0a;
+    border: 1px solid #1a1a1a;
+    border-radius: 8px;
+    color: #e5e5e5;
+    padding: 0.875rem 1rem;
+    font-size: 0.9rem;
+    width: 100%;
+    transition: border-color 0.2s ease;
+    outline: none;
+}
+.url-input:focus { border-color: #6ee7b7; }
+.url-input::placeholder { color: #333; }
+
+/* Button */
+.btn-primary {
+    background: #e5e5e5;
+    color: #000;
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+}
+.btn-primary:hover { opacity: 0.85; }
+.btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* Fade */
+.fade-in { animation: fadeIn 0.3s ease-out; }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}

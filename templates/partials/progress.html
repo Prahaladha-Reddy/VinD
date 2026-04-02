@@ -1,0 +1,25 @@
+<!-- Progress partial -->
+<div class="card p-8 text-center fade-in"
+     hx-get="/status/{{ job_id }}"
+     hx-trigger="every 3s"
+     hx-target="#result-area"
+     hx-swap="innerHTML">
+
+    <div class="flex justify-center mb-5">
+        <div class="spinner"></div>
+    </div>
+
+    <p class="text-white text-sm font-medium mb-1">{{ stage_text }}</p>
+
+    {% if elapsed is defined and elapsed %}
+    <p class="text-neutral-600 text-xs mb-4">{{ elapsed }}s</p>
+    {% endif %}
+
+    <div class="progress-track max-w-xs mx-auto mb-4">
+        <div class="progress-fill" style="width: {{ progress }}%"></div>
+    </div>
+
+    <p class="text-neutral-700 text-[11px]">
+        Typically 5–10 min for a 1-minute video.
+    </p>
+</div>

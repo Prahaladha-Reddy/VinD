@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Results — vinD{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-8 pb-5 border-b border-white/[0.04]">
+        <div>
+            <h1 class="text-xl font-semibold text-white mb-1">Results</h1>
+            <p class="text-neutral-600 text-xs truncate max-w-md" title="{{ video_url }}">{{ video_url }}</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="text-[11px] text-neutral-600">{{ elapsed }}s</span>
+            <a href="/" class="text-xs text-neutral-500 hover:text-white transition-colors">+ New</a>
+        </div>
+    </div>
+
+    <!-- Headline Metric Cards -->
+    <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 mb-10">
+        {% set cards = [
+            ('Engagement', headlines.total_engagement, ''),
+            ('Emotional', headlines.emotional, ''),
+            ('Sensory', headlines.sensory, ''),
+            ('Cognitive', headlines.cognitive, ''),
+            ('Social', headlines.social, ''),
+            ('Retention', headlines.retention, '%'),
+        ] %}
+        {% for label, value, suffix in cards %}
+        <div class="card p-4 text-center">
+            <p class="text-[10px] text-neutral-600 uppercase tracking-widest mb-2">{{ label }}</p>
+            <p class="text-2xl font-bold text-white tabular-nums">
+                {{ value }}<span class="text-sm text-neutral-600">{{ suffix }}</span>
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Secondary stats -->
+    <div class="flex flex-wrap gap-6 mb-10 text-xs">
+        {% set stats = [
+            ('Duration', headlines.duration),
+            ('Hook', headlines.hook ~ '/100'),
+            ('Ending', headlines.ending ~ '/100'),
+            ('Brain States', headlines.brain_states),
+            ('Entropy', headlines.entropy),
+            ('Moments', headlines.moments),
+        ] %}
+        {% for label, val in stats %}
+        <div>
+            <span class="text-neutral-600">{{ label }}</span>
+            <span class="text-neutral-300 font-medium ml-1">{{ val }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Tabs -->
+    <div class="border-b border-white/[0.04] mb-8">
+        <div class="flex gap-1" id="tab-bar">
+            <button class="tab-btn active" onclick="switchTab('plots')">Plots</button>
+            <button class="tab-btn" onclick="switchTab('report')">Report</button>
+        </div>
+    </div>
+
+    <!-- Tab: Plots -->
+    <div id="tab-plots">
+        {% if plots|length > 0 %}
+        <div class="plot-card mb-5 cursor-pointer" onclick="openLightbox('{{ plots[0].url }}')">
+            <img src="{{ plots[0].url }}" alt="{{ plots[0].title }}" loading="lazy">
+            <div class="px-4 py-3">
+                <h3 class="text-white text-sm font-medium">{{ plots[0].title }}</h3>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+            {% for plot in plots[1:] %}
+            <div class="plot-card cursor-pointer" onclick="openLightbox('{{ plot.url }}')">
+                <img src="{{ plot.url }}" alt="{{ plot.title }}" loading="lazy">
+                <div class="px-4 py-3">
+                    <h3 class="text-white text-xs font-medium">{{ plot.title }}</h3>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Tab: Report -->
+    <div id="tab-report" class="hidden">
+        <div class="card p-6 sm:p-8">
+            <div class="report-content">
+                {{ report_html|safe }}
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox-overlay" onclick="closeLightbox()">
+    <img id="lightbox-img" src="" alt="Zoomed plot">
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function switchTab(tab) {
+    document.getElementById('tab-plots').classList.toggle('hidden', tab !== 'plots');
+    document.getElementById('tab-report').classList.toggle('hidden', tab !== 'report');
+    document.querySelectorAll('#tab-bar .tab-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.trim() === (tab === 'plots' ? 'Plots' : 'Report'));
+    });
+}
+function openLightbox(url) {
+    document.getElementById('lightbox-img').src = url;
+    document.getElementById('lightbox').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+</script>
+{% endblock %}

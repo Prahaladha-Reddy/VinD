@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[70vh]">
+
+    <div class="text-center mb-10 fade-in">
+        <h1 class="text-3xl font-bold text-white mb-3 tracking-tight">Neural Focus Group</h1>
+        <p class="text-sm text-neutral-500 max-w-md mx-auto">
+            Predict brain responses to any video, second by second.
+        </p>
+    </div>
+
+    <div class="w-full max-w-lg fade-in">
+        <form hx-post="/analyze"
+              hx-target="#result-area"
+              hx-swap="innerHTML"
+              class="space-y-4">
+
+            <input type="url"
+                   name="video_url"
+                   class="url-input"
+                   placeholder="Paste a video URL…"
+                   required
+                   autocomplete="off">
+
+            <div class="flex justify-center">
+                <button type="submit" id="submit-btn" class="btn-primary">
+                    Analyze
+                </button>
+            </div>
+        </form>
+
+        <div id="result-area" class="mt-8"></div>
+    </div>
+
+    <div class="mt-20 flex gap-10 text-[11px] text-neutral-600 fade-in">
+        <span>20,484 cortical vertices</span>
+        <span>A100 GPU inference</span>
+        <span>TRIBE v2 model</span>
+    </div>
+
+</div>
+{% endblock %}

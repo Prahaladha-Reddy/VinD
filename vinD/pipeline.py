@@ -1,87 +1,84 @@
-import numpy as np
+from __future__ import annotations
+
+import logging
 from pathlib import Path
 
+from vinD.advanced import (
+    analyze_state_transitions,
+    apply_hrf_correction,
+    compute_memory_encoding,
+    compute_temporal_entropy,
+    extract_subcortical,
+)
+from vinD.connectivity import cluster_brain_states, compute_sliding_connectivity
+from vinD.metrics import classify_viewer_states, compute_metrics
+from vinD.moments import detect_critical_moments
 from vinD.parcellation import (
-    load_schaefer_atlas,
-    parcellate_predictions,
     compute_network_timeseries,
     extract_key_regions,
-)
-from vinD.connectivity import (
-    compute_sliding_connectivity,
-    cluster_brain_states,
-)
-from vinD.metrics import compute_metrics, classify_viewer_states
-from vinD.moments import detect_critical_moments
-from vinD.advanced import (
-    compute_memory_encoding,
-    extract_subcortical,
-    analyze_state_transitions,
-    compute_temporal_entropy,
-    apply_hrf_correction,
+    load_schaefer_atlas,
+    parcellate_predictions,
 )
 from vinD.plots import save_all_plots
 from vinD.report import generate_markdown_report, save_report
 
 
+LOGGER = logging.getLogger("vinD.pipeline")
+
+
+def _validate_predictions(preds) -> None:
+    if not hasattr(preds, "shape"):
+        raise TypeError("preds must be a NumPy-like 2D array")
+
+    if len(preds.shape) != 2:
+        raise ValueError(f"preds must be 2D with shape (time, vertices), got {preds.shape}")
+
+    if preds.shape[0] < 2:
+        raise ValueError("preds must contain at least 2 timepoints")
+
+    if preds.shape[1] < 20484:
+        raise ValueError(
+            "preds must contain at least 20,484 cortical vertices from fsaverage5"
+        )
+
+
 def run_analysis(preds, segments=None, output_dir="results", hrf_lag=5):
-    """Run the full neural focus group analysis pipeline.
+    """Run the full neural focus group analysis pipeline."""
+    _validate_predictions(preds)
 
-    Parameters
-    ----------
-    preds : np.ndarray, shape (T, n_vertices)
-        TRIBE v2 predictions. T = number of timesteps (1 Hz), n_vertices >= 20484.
-    segments : list, optional
-        TRIBE v2 segment metadata. Stored in the report if provided.
-    output_dir : str or Path
-        Where to save report.md and plots/ folder.
-    hrf_lag : int
-        Hemodynamic lag in seconds for video-aligned timestamps.
-
-    Returns
-    -------
-    results : dict
-        All computed data for programmatic access.
-    """
     output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
     plots_dir = output_dir / "plots"
     T = preds.shape[0]
 
-    print(f"vinD: Analysing {T}s of predictions ({preds.shape[1]} vertices)")
+    LOGGER.info("Analysing %ss of predictions across %s vertices", T, preds.shape[1])
 
-    # ── Step 1: Parcellation ──
-    print("  [1/8] Loading Schaefer 400-parcel atlas...")
+    LOGGER.info("[1/8] Loading Schaefer 400-parcel atlas")
     vertex_labels, parcel_names = load_schaefer_atlas(n_parcels=400, n_networks=7)
 
-    print("  [2/8] Parcellating predictions...")
+    LOGGER.info("[2/8] Parcellating predictions")
     parcel_ts = parcellate_predictions(preds, vertex_labels, parcel_names)
-
     network_ts = compute_network_timeseries(parcel_ts, parcel_names)
     key_regions = extract_key_regions(parcel_ts, parcel_names)
 
-    # ── Step 2: Dynamic connectivity ──
-    print("  [3/8] Computing dynamic functional connectivity...")
-    connectivity_matrices, window_centers, connectivity_pairs = (
-        compute_sliding_connectivity(network_ts, T)
+    LOGGER.info("[3/8] Computing dynamic functional connectivity")
+    connectivity_matrices, window_centers, connectivity_pairs = compute_sliding_connectivity(
+        network_ts, T
     )
-
     state_labels_per_sec, best_k, state_labels_windows = cluster_brain_states(
         connectivity_matrices, window_centers, T
     )
 
-    # ── Step 3: Per-second metrics ──
-    print("  [4/8] Computing engagement metrics...")
+    LOGGER.info("[4/8] Computing engagement metrics")
     metrics_raw, metrics_normalized = compute_metrics(network_ts, key_regions)
     viewer_states = classify_viewer_states(metrics_raw)
     metrics_normalized["viewer_state"] = viewer_states
     metrics_normalized["brain_state"] = state_labels_per_sec
 
-    # ── Step 4: Critical moments ──
-    print("  [5/8] Detecting critical moments...")
+    LOGGER.info("[5/8] Detecting critical moments")
     moments = detect_critical_moments(metrics_normalized, viewer_states, T)
 
-    # ── Step 5: Advanced analyses ──
-    print("  [6/8] Running advanced analyses...")
+    LOGGER.info("[6/8] Running advanced analyses")
     memory_score, mem_peaks = compute_memory_encoding(
         metrics_raw, network_ts, connectivity_pairs, window_centers, T
     )
@@ -103,21 +100,28 @@ def run_analysis(preds, segments=None, output_dir="results", hrf_lag=5):
         metrics_normalized, moments, hrf_lag
     )
 
-    # ── Step 6: Plots ──
+    LOGGER.info("[7/8] Generating plots")
     eng = metrics_normalized["total_engagement"].values
-    print("  [7/8] Generating plots...")
     save_all_plots(
         plots_dir,
-        metrics_normalized, viewer_states, moments,
-        connectivity_matrices, window_centers, connectivity_pairs,
-        state_labels_windows, best_k,
-        eng, coherence, avg_entropy,
-        memory_score, mem_peaks,
-        T, hrf_lag,
+        metrics_normalized,
+        viewer_states,
+        moments,
+        connectivity_matrices,
+        window_centers,
+        connectivity_pairs,
+        state_labels_windows,
+        best_k,
+        eng,
+        coherence,
+        avg_entropy,
+        memory_score,
+        mem_peaks,
+        T,
+        hrf_lag,
     )
 
-    # ── Step 7: Markdown report ──
-    print("  [8/8] Writing report...")
+    LOGGER.info("[8/8] Writing report")
     report_text = generate_markdown_report(
         metrics_normalized=metrics_normalized,
         viewer_states=viewer_states,
@@ -139,8 +143,8 @@ def run_analysis(preds, segments=None, output_dir="results", hrf_lag=5):
     )
     save_report(report_text, output_dir)
 
-    print(f"\nDone! Results saved to {output_dir}/")
-    print(f"  report.md + {len(list(plots_dir.glob('*.png')))} plots")
+    LOGGER.info("Results saved to %s", output_dir.resolve())
+    LOGGER.info("Generated report.md and %s plot files", len(list(plots_dir.glob("*.png"))))
 
     return {
         "metrics_normalized": metrics_normalized,

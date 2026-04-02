@@ -4,14 +4,14 @@ from scipy.stats import zscore
 
 
 STATE_COLORS = {
-    "visually_absorbed": "#378ADD",
-    "emotionally_gripped": "#E24B4A",
-    "thinking_hard": "#7F77DD",
-    "socially_connecting": "#D4537E",
-    "personally_relating": "#1D9E75",
-    "mind_wandering": "#888780",
-    "confused": "#EF9F27",
-    "checked_out": "#B4B2A9",
+    "visually_absorbed": "#60a5fa",
+    "emotionally_gripped": "#f87171",
+    "thinking_hard": "#a78bfa",
+    "socially_connecting": "#f472b6",
+    "personally_relating": "#34d399",
+    "mind_wandering": "#525252",
+    "confused": "#fbbf24",
+    "checked_out": "#404040",
 }
 
 FRIENDLY_NAMES = {

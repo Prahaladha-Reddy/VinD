@@ -8,9 +8,45 @@ from scipy.ndimage import uniform_filter1d
 from vinD.metrics import STATE_COLORS, FRIENDLY_NAMES
 from vinD.connectivity import NET_NAMES_ORDERED
 
+# ── Dark theme ────────────────────────────────────────────────────────
+BG = "#0a0a0a"
+FG = "#e0e0e0"
+GRID = "#1a1a1a"
+ACCENT = "#6ee7b7"  # mint green
+SUBTLE = "#404040"
+
+COLORS = {
+    "blue":    "#60a5fa",
+    "red":     "#f87171",
+    "purple":  "#a78bfa",
+    "green":   "#34d399",
+    "orange":  "#fbbf24",
+    "pink":    "#f472b6",
+    "cyan":    "#22d3ee",
+    "teal":    "#2dd4bf",
+}
+
+def _apply_dark_theme():
+    plt.rcParams.update({
+        "figure.facecolor": BG,
+        "axes.facecolor": BG,
+        "axes.edgecolor": SUBTLE,
+        "axes.labelcolor": FG,
+        "text.color": FG,
+        "xtick.color": "#888",
+        "ytick.color": "#888",
+        "grid.color": GRID,
+        "legend.facecolor": "#111111",
+        "legend.edgecolor": "#222",
+        "legend.labelcolor": FG,
+        "figure.dpi": 150,
+    })
+
+_apply_dark_theme()
+
 
 def _save_and_close(fig, path):
-    fig.savefig(path, dpi=150, bbox_inches="tight", facecolor="white")
+    fig.savefig(path, dpi=150, bbox_inches="tight", facecolor=BG)
     plt.close(fig)
 
 
@@ -28,13 +64,13 @@ def plot_detailed_timeline(metrics_normalized, viewer_states, moments, T, out_pa
     # Track 1: Total engagement
     ax = axes[0]
     ax.fill_between(
-        time, 0, metrics_normalized["total_engagement"], alpha=0.3, color="#378ADD"
+        time, 0, metrics_normalized["total_engagement"], alpha=0.2, color=COLORS["cyan"]
     )
     ax.plot(
         time, metrics_normalized["total_engagement"],
-        color="#378ADD", linewidth=1.5, label="Total engagement",
+        color=COLORS["cyan"], linewidth=1.5, label="Total engagement",
     )
-    ax.axhline(50, color="gray", linewidth=0.5, linestyle="--", alpha=0.5)
+    ax.axhline(50, color=SUBTLE, linewidth=0.5, linestyle="--", alpha=0.5)
     ax.set_ylabel("Total\nEngagement", fontsize=10)
     ax.set_ylim(0, 100)
     ax.legend(loc="upper right", fontsize=8)
@@ -42,22 +78,22 @@ def plot_detailed_timeline(metrics_normalized, viewer_states, moments, T, out_pa
     # Track 2: Engagement breakdown
     ax = axes[1]
     for col, color, label in [
-        ("sensory_engagement", "#378ADD", "Sensory"),
-        ("emotional_engagement", "#E24B4A", "Emotional"),
-        ("cognitive_engagement", "#7F77DD", "Cognitive"),
-        ("narrative_engagement", "#1D9E75", "Narrative"),
+        ("sensory_engagement", COLORS["blue"], "Sensory"),
+        ("emotional_engagement", COLORS["red"], "Emotional"),
+        ("cognitive_engagement", COLORS["purple"], "Cognitive"),
+        ("narrative_engagement", COLORS["green"], "Narrative"),
     ]:
         ax.plot(time, metrics_normalized[col], color=color, linewidth=1, label=label, alpha=0.8)
-    ax.axhline(50, color="gray", linewidth=0.5, linestyle="--", alpha=0.5)
+    ax.axhline(50, color=SUBTLE, linewidth=0.5, linestyle="--", alpha=0.5)
     ax.set_ylabel("Engagement\nBreakdown", fontsize=10)
     ax.set_ylim(0, 100)
     ax.legend(loc="upper right", fontsize=7, ncol=4)
 
     # Track 3: Arousal + Valence
     ax = axes[2]
-    ax.plot(time, metrics_normalized["arousal"], color="#E24B4A", linewidth=1.2, label="Arousal")
-    ax.plot(time, metrics_normalized["valence_proxy"], color="#1D9E75", linewidth=1.2, label="Valence proxy")
-    ax.axhline(50, color="gray", linewidth=0.5, linestyle="--", alpha=0.5)
+    ax.plot(time, metrics_normalized["arousal"], color=COLORS["red"], linewidth=1.2, label="Arousal")
+    ax.plot(time, metrics_normalized["valence_proxy"], color=COLORS["green"], linewidth=1.2, label="Valence proxy")
+    ax.axhline(50, color=SUBTLE, linewidth=0.5, linestyle="--", alpha=0.5)
     ax.set_ylabel("Arousal &\nValence", fontsize=10)
     ax.set_ylim(0, 100)
     ax.legend(loc="upper right", fontsize=8)
@@ -65,13 +101,13 @@ def plot_detailed_timeline(metrics_normalized, viewer_states, moments, T, out_pa
     # Track 4: Key regions
     ax = axes[3]
     for col, color, label in [
-        ("face_response", "#D4537E", "Face"),
-        ("language_response", "#534AB7", "Language"),
-        ("memory_encoding", "#0F6E56", "Memory"),
-        ("reward_signal", "#BA7517", "Reward"),
+        ("face_response", COLORS["pink"], "Face"),
+        ("language_response", COLORS["purple"], "Language"),
+        ("memory_encoding", COLORS["teal"], "Memory"),
+        ("reward_signal", COLORS["orange"], "Reward"),
     ]:
         ax.plot(time, metrics_normalized[col], color=color, linewidth=1, label=label, alpha=0.8)
-    ax.axhline(50, color="gray", linewidth=0.5, linestyle="--", alpha=0.5)
+    ax.axhline(50, color=SUBTLE, linewidth=0.5, linestyle="--", alpha=0.5)
     ax.set_ylabel("Key\nRegions", fontsize=10)
     ax.set_ylim(0, 100)
     ax.legend(loc="upper right", fontsize=7, ncol=4)
@@ -80,10 +116,10 @@ def plot_detailed_timeline(metrics_normalized, viewer_states, moments, T, out_pa
     ax = axes[4]
     ax.fill_between(
         time, 0, metrics_normalized["mind_wandering"],
-        alpha=0.4, color="#888780", label="Mind-wandering",
+        alpha=0.3, color="#525252", label="Mind-wandering",
     )
     ax.plot(
-        time, metrics_normalized["novelty"], color="#EF9F27",
+        time, metrics_normalized["novelty"], color=COLORS["orange"],
         linewidth=1.2, label="Novelty", alpha=0.9,
     )
     ax.set_ylabel("Wandering\n& Novelty", fontsize=10)
@@ -94,14 +130,14 @@ def plot_detailed_timeline(metrics_normalized, viewer_states, moments, T, out_pa
     ax = axes[5]
     for t_sec in range(T):
         state = viewer_states.iloc[t_sec]
-        color = STATE_COLORS.get(state, "#B4B2A9")
+        color = STATE_COLORS.get(state, "#404040")
         ax.axvspan(t_sec, t_sec + 1, color=color, alpha=0.8)
     ax.set_ylabel("Viewer\nState", fontsize=10)
     ax.set_yticks([])
     ax.set_xlabel("Time (seconds)", fontsize=11)
     used_states = viewer_states.unique()
     legend_patches = [
-        plt.Rectangle((0, 0), 1, 1, fc=STATE_COLORS.get(s, "#B4B2A9"), alpha=0.8)
+        plt.Rectangle((0, 0), 1, 1, fc=STATE_COLORS.get(s, "#404040"), alpha=0.8)
         for s in used_states
     ]
     ax.legend(
@@ -114,13 +150,13 @@ def plot_detailed_timeline(metrics_normalized, viewer_states, moments, T, out_pa
     # Mark critical moments on top track
     for m in moments:
         if m["type"] in ["emotional_peak", "novelty_spike"]:
-            axes[0].axvline(m["start"], color="#E24B4A", linewidth=0.8, alpha=0.5, linestyle=":")
+            axes[0].axvline(m["start"], color=COLORS["red"], linewidth=0.8, alpha=0.5, linestyle=":")
         elif m["type"] in ["engagement_dip", "momentum_loss"]:
-            axes[0].axvline(m["start"], color="#888780", linewidth=0.8, alpha=0.5, linestyle=":")
+            axes[0].axvline(m["start"], color="#525252", linewidth=0.8, alpha=0.5, linestyle=":")
 
     fig.suptitle(
         "Neural Focus Group — Comprehensive Viewer Experience Timeline",
-        fontsize=14, fontweight="bold", y=0.98,
+        fontsize=14, fontweight="bold", y=0.98, color=FG,
     )
     plt.tight_layout(rect=[0, 0.02, 1, 0.97])
     _save_and_close(fig, out_path)
@@ -141,10 +177,10 @@ def plot_simple_timeline(metrics_normalized, viewer_states, moments, T, out_path
 
     # Track 1: Attention with colored fill
     ax = axes[0]
-    ax.plot(time, eng, color="#185FA5", linewidth=2.5, zorder=3)
+    ax.plot(time, eng, color=COLORS["cyan"], linewidth=2.5, zorder=3)
     for t in range(T - 1):
         state = viewer_states.iloc[t]
-        color = STATE_COLORS.get(state, "#B4B2A9")
+        color = STATE_COLORS.get(state, "#404040")
         ax.fill_between([t, t + 1], 0, [eng[t], eng[t + 1]], color=color, alpha=0.35)
 
     for m in moments:
@@ -153,28 +189,28 @@ def plot_simple_timeline(metrics_normalized, viewer_states, moments, T, out_path
             continue
         y = min(95, eng[min(mt, T - 1)] + 6)
         if m["type"] == "emotional_peak":
-            ax.annotate("\u2665", (mt, y), fontsize=16, ha="center", color="#E24B4A", zorder=5)
+            ax.annotate("\u2665", (mt, y), fontsize=16, ha="center", color=COLORS["red"], zorder=5)
         elif m["type"] == "engagement_dip" and m["severity"] == "concerning":
             mid = m["start"] + (m["end"] - m["start"]) // 2
-            ax.annotate("\u2B07", (mid, eng[min(mt, T - 1)] + 6), fontsize=12, ha="center", color="#888780", zorder=5)
+            ax.annotate("\u2B07", (mid, eng[min(mt, T - 1)] + 6), fontsize=12, ha="center", color="#525252", zorder=5)
         elif m["type"] == "novelty_spike":
-            ax.annotate("\u2605", (mt, y), fontsize=13, ha="center", color="#EF9F27", zorder=5)
+            ax.annotate("\u2605", (mt, y), fontsize=13, ha="center", color=COLORS["orange"], zorder=5)
         elif m["type"] == "momentum_loss":
-            ax.annotate("\u2198", (mt, y), fontsize=14, ha="center", color="#E24B4A", zorder=5)
+            ax.annotate("\u2198", (mt, y), fontsize=14, ha="center", color=COLORS["red"], zorder=5)
 
-    ax.axhline(50, color="gray", linewidth=0.5, linestyle="--", alpha=0.3)
-    ax.text(T + 0.5, 50, "avg", fontsize=8, color="gray", va="center")
+    ax.axhline(50, color=SUBTLE, linewidth=0.5, linestyle="--", alpha=0.3)
+    ax.text(T + 0.5, 50, "avg", fontsize=8, color="#666", va="center")
     ax.set_ylim(0, 100)
     ax.set_ylabel("Viewer Attention", fontsize=12, fontweight="bold")
     ax.set_title("How engaged is the viewer? (color = type of engagement)", fontsize=13, fontweight="bold")
 
     used = viewer_states.unique()
-    patches = [plt.Rectangle((0, 0), 1, 1, fc=STATE_COLORS.get(s, "#B4B2A9"), alpha=0.5) for s in used]
+    patches = [plt.Rectangle((0, 0), 1, 1, fc=STATE_COLORS.get(s, "#404040"), alpha=0.5) for s in used]
     labels = [FRIENDLY_NAMES.get(s, s) for s in used]
     patches += [
-        plt.Line2D([0], [0], marker="$\u2665$", color="#E24B4A", linestyle="None", markersize=10),
-        plt.Line2D([0], [0], marker="$\u2605$", color="#EF9F27", linestyle="None", markersize=10),
-        plt.Line2D([0], [0], marker="$\u2198$", color="#E24B4A", linestyle="None", markersize=10),
+        plt.Line2D([0], [0], marker="$\u2665$", color=COLORS["red"], linestyle="None", markersize=10),
+        plt.Line2D([0], [0], marker="$\u2605$", color=COLORS["orange"], linestyle="None", markersize=10),
+        plt.Line2D([0], [0], marker="$\u2198$", color=COLORS["red"], linestyle="None", markersize=10),
     ]
     labels += ["Emotional peak", "Surprise moment", "Losing momentum"]
     ax.legend(patches, labels, loc="upper right", fontsize=7, ncol=3)
@@ -186,11 +222,11 @@ def plot_simple_timeline(metrics_normalized, viewer_states, moments, T, out_path
     energy = np.maximum(arousal_n, novelty_n)
     energy_smooth = uniform_filter1d(energy.astype(float), size=3)
 
-    ax.fill_between(time, 0, energy_smooth, color="#EF9F27", alpha=0.2)
-    ax.plot(time, energy_smooth, color="#EF9F27", linewidth=2, label="Energy (excitement level)")
+    ax.fill_between(time, 0, energy_smooth, color=COLORS["orange"], alpha=0.15)
+    ax.plot(time, energy_smooth, color=COLORS["orange"], linewidth=2, label="Energy (excitement level)")
     face_n = metrics_normalized["face_response"].values
-    ax.plot(time, face_n, color="#D4537E", linewidth=1.5, alpha=0.7, label="Face on screen")
-    ax.axhline(50, color="gray", linewidth=0.5, linestyle="--", alpha=0.3)
+    ax.plot(time, face_n, color=COLORS["pink"], linewidth=1.5, alpha=0.7, label="Face on screen")
+    ax.axhline(50, color=SUBTLE, linewidth=0.5, linestyle="--", alpha=0.3)
     ax.set_ylim(0, 100)
     ax.set_ylabel("Energy Level", fontsize=12, fontweight="bold")
     ax.legend(loc="upper right", fontsize=9)
@@ -199,7 +235,7 @@ def plot_simple_timeline(metrics_normalized, viewer_states, moments, T, out_path
     ax = axes[2]
     for t_sec in range(T):
         state = viewer_states.iloc[t_sec]
-        color = STATE_COLORS.get(state, "#B4B2A9")
+        color = STATE_COLORS.get(state, "#404040")
         ax.axvspan(t_sec, t_sec + 1, color=color, alpha=0.85)
     ax.set_ylabel("State", fontsize=10, fontweight="bold")
     ax.set_yticks([])
@@ -288,8 +324,8 @@ def plot_connectivity_simple(connectivity_matrices, window_centers, state_labels
         / (integration_score.max() - integration_score.min() + 1e-12) * 100,
         0, 100,
     )
-    ax.fill_between(window_centers, 0, integration_norm, color="#534AB7", alpha=0.2)
-    ax.plot(window_centers, integration_norm, color="#534AB7", linewidth=2)
+    ax.fill_between(window_centers, 0, integration_norm, color=COLORS["purple"], alpha=0.15)
+    ax.plot(window_centers, integration_norm, color=COLORS["purple"], linewidth=2)
 
     for w in range(len(state_labels_windows) - 1):
         ax.axvspan(
@@ -297,7 +333,7 @@ def plot_connectivity_simple(connectivity_matrices, window_centers, state_labels
             color=f"C{state_labels_windows[w]}", alpha=0.08,
         )
 
-    ax.axhline(50, color="gray", linewidth=0.5, linestyle="--", alpha=0.3)
+    ax.axhline(50, color=SUBTLE, linewidth=0.5, linestyle="--", alpha=0.3)
     ax.set_ylim(0, 100)
     ax.set_xlim(0, T)
     ax.set_xlabel("Time (seconds)", fontsize=11)
@@ -338,14 +374,14 @@ def plot_radar(metrics_normalized, out_path):
     angles_plot = angles + [angles[0]]
 
     fig, ax = plt.subplots(1, 1, figsize=(7, 7), subplot_kw=dict(polar=True))
-    ax.fill(angles_plot, values_plot, color="#378ADD", alpha=0.15)
-    ax.plot(angles_plot, values_plot, color="#378ADD", linewidth=2)
-    ax.scatter(angles, values, color="#378ADD", s=60, zorder=5)
+    ax.fill(angles_plot, values_plot, color=COLORS["cyan"], alpha=0.12)
+    ax.plot(angles_plot, values_plot, color=COLORS["cyan"], linewidth=2)
+    ax.scatter(angles, values, color=COLORS["cyan"], s=60, zorder=5)
 
     for angle, val, cat in zip(angles, values, categories):
         ax.annotate(
             f"{val:.0f}", xy=(angle, val), fontsize=10, ha="center", va="bottom",
-            fontweight="bold", color="#185FA5",
+            fontweight="bold", color=ACCENT,
         )
 
     ax.set_xticks(angles)
@@ -366,10 +402,10 @@ def plot_radar(metrics_normalized, out_path):
 def plot_coupling(connectivity_pairs, window_centers, T, out_path):
     fig, ax = plt.subplots(figsize=(16, 5))
     pair_colors = {
-        "visual_limbic": ("#E24B4A", "Visual-Emotional coupling"),
-        "visual_dorsal_attn": ("#378ADD", "Visual-Attention coupling"),
-        "frontoparietal_dmn": ("#7F77DD", "Executive-DMN coupling"),
-        "dmn_limbic": ("#1D9E75", "DMN-Emotional coupling"),
+        "visual_limbic": (COLORS["red"], "Visual-Emotional coupling"),
+        "visual_dorsal_attn": (COLORS["blue"], "Visual-Attention coupling"),
+        "frontoparietal_dmn": (COLORS["purple"], "Executive-DMN coupling"),
+        "dmn_limbic": (COLORS["green"], "DMN-Emotional coupling"),
     }
 
     for key, (color, label) in pair_colors.items():
@@ -380,7 +416,7 @@ def plot_coupling(connectivity_pairs, window_centers, T, out_path):
             color=color, linewidth=1.5, label=label, alpha=0.85,
         )
 
-    ax.axhline(0, color="gray", linewidth=0.5, linestyle="--", alpha=0.5)
+    ax.axhline(0, color=SUBTLE, linewidth=0.5, linestyle="--", alpha=0.5)
     ax.set_xlabel("Time (seconds)", fontsize=11)
     ax.set_ylabel("Correlation (r)", fontsize=11)
     ax.set_title("Dynamic Network Coupling Over Time", fontsize=13, fontweight="bold")
@@ -400,8 +436,8 @@ def plot_coupling_simple(connectivity_pairs, window_centers, T, out_path):
         3, 1, figsize=(16, 8), sharex=True, gridspec_kw={"hspace": 0.15}
     )
     wc = window_centers
-    color_pos = "#1D9E75"
-    color_neg = "#E24B4A"
+    color_pos = COLORS["green"]
+    color_neg = COLORS["red"]
 
     pairs_config = [
         (
@@ -417,7 +453,7 @@ def plot_coupling_simple(connectivity_pairs, window_centers, T, out_path):
         (
             "frontoparietal_visual", axes[2], "Think \u2192 See",
             '"Is the viewer actively thinking about what they see, or passively watching?"',
-            ("Analyzing\n(active)", "#7F77DD"), ("Passive\n(watching)", "#EF9F27"),
+            ("Analyzing\n(active)", COLORS["purple"]), ("Passive\n(watching)", COLORS["orange"]),
         ),
     ]
 
@@ -428,8 +464,8 @@ def plot_coupling_simple(connectivity_pairs, window_centers, T, out_path):
         n_color = neg_label[1]
         ax.fill_between(wc[: len(vals_smooth)], 0, vals_smooth, where=vals_smooth >= 0, color=p_color, alpha=0.25)
         ax.fill_between(wc[: len(vals_smooth)], 0, vals_smooth, where=vals_smooth < 0, color=n_color, alpha=0.25)
-        ax.plot(wc[: len(vals_smooth)], vals_smooth, color="#185FA5", linewidth=2)
-        ax.axhline(0, color="gray", linewidth=0.8)
+        ax.plot(wc[: len(vals_smooth)], vals_smooth, color=COLORS["cyan"], linewidth=2)
+        ax.axhline(0, color=SUBTLE, linewidth=0.8)
         ax.set_ylim(-1, 1)
         ax.set_ylabel(ylabel, fontsize=11, fontweight="bold")
         ax.set_title(title, fontsize=12, fontweight="bold")
@@ -459,10 +495,10 @@ def plot_marketing_dashboard(
 
     # === Top row: Engagement timeline ===
     ax_timeline = fig.add_subplot(gs[0, :])
-    ax_timeline.plot(time, eng_total, color="#185FA5", linewidth=2, zorder=3)
+    ax_timeline.plot(time, eng_total, color=COLORS["cyan"], linewidth=2, zorder=3)
     for t in range(T - 1):
         state = viewer_states.iloc[t]
-        color = STATE_COLORS.get(state, "#B4B2A9")
+        color = STATE_COLORS.get(state, "#404040")
         ax_timeline.fill_between(
             [t, t + 1], 0, [eng_total[t], eng_total[t + 1]], color=color, alpha=0.4,
         )
@@ -473,11 +509,11 @@ def plot_marketing_dashboard(
             continue
         y_val = min(95, eng_total[min(mt, T - 1)] + 5)
         if m["type"] == "emotional_peak":
-            ax_timeline.annotate("\u2665", (mt, y_val), fontsize=14, ha="center", color="#E24B4A")
+            ax_timeline.annotate("\u2665", (mt, y_val), fontsize=14, ha="center", color=COLORS["red"])
         elif m["type"] == "engagement_dip" and m["severity"] == "concerning":
-            ax_timeline.annotate("\u2193", (mt, y_val), fontsize=14, ha="center", color="#888780", fontweight="bold")
+            ax_timeline.annotate("\u2193", (mt, y_val), fontsize=14, ha="center", color="#525252", fontweight="bold")
         elif m["type"] == "novelty_spike":
-            ax_timeline.annotate("\u2605", (mt, y_val), fontsize=12, ha="center", color="#EF9F27")
+            ax_timeline.annotate("\u2605", (mt, y_val), fontsize=12, ha="center", color=COLORS["orange"])
 
     ax_timeline.set_ylim(0, 100)
     ax_timeline.set_xlim(0, T)
@@ -487,7 +523,7 @@ def plot_marketing_dashboard(
 
     used_states = viewer_states.unique()
     patches = [
-        plt.Rectangle((0, 0), 1, 1, fc=STATE_COLORS.get(s, "#B4B2A9"), alpha=0.6)
+        plt.Rectangle((0, 0), 1, 1, fc=STATE_COLORS.get(s, "#404040"), alpha=0.6)
         for s in used_states
     ]
     ax_timeline.legend(
@@ -514,11 +550,11 @@ def plot_marketing_dashboard(
     angles = np.linspace(0, 2 * np.pi, len(friendly_cats), endpoint=False).tolist()
     rv_plot = radar_values + [radar_values[0]]
     a_plot = angles + [angles[0]]
-    ax_radar.fill(a_plot, rv_plot, color="#378ADD", alpha=0.15)
-    ax_radar.plot(a_plot, rv_plot, color="#378ADD", linewidth=2)
-    ax_radar.scatter(angles, radar_values, color="#378ADD", s=50, zorder=5)
+    ax_radar.fill(a_plot, rv_plot, color=COLORS["cyan"], alpha=0.12)
+    ax_radar.plot(a_plot, rv_plot, color=COLORS["cyan"], linewidth=2)
+    ax_radar.scatter(angles, radar_values, color=COLORS["cyan"], s=50, zorder=5)
     for a, v in zip(angles, radar_values):
-        ax_radar.annotate(f"{v:.0f}", xy=(a, v), fontsize=9, ha="center", va="bottom", fontweight="bold", color="#185FA5")
+        ax_radar.annotate(f"{v:.0f}", xy=(a, v), fontsize=9, ha="center", va="bottom", fontweight="bold", color=ACCENT)
     ax_radar.set_xticks(angles)
     ax_radar.set_xticklabels(friendly_cats, fontsize=8)
     ax_radar.set_ylim(0, 100)
@@ -531,11 +567,11 @@ def plot_marketing_dashboard(
     ax_scores.axis("off")
     retention = (eng > np.percentile(eng, 35)).sum() / T * 100
     score_data = [
-        ("Hook Strength", eng[: min(3, T)].mean(), "#E24B4A" if eng[: min(3, T)].mean() < 30 else "#1D9E75"),
-        ("Predicted Retention", retention, "#378ADD"),
-        ("Ending Strength", eng[-min(5, T) :].mean(), "#7F77DD"),
-        ("Narrative Coherence", coherence, "#BA7517"),
-        ("Brain Dynamism", avg_entropy * 100, "#534AB7"),
+        ("Hook Strength", eng[: min(3, T)].mean(), COLORS["red"] if eng[: min(3, T)].mean() < 30 else COLORS["green"]),
+        ("Predicted Retention", retention, COLORS["blue"]),
+        ("Ending Strength", eng[-min(5, T) :].mean(), COLORS["purple"]),
+        ("Narrative Coherence", coherence, COLORS["orange"]),
+        ("Brain Dynamism", avg_entropy * 100, COLORS["cyan"]),
     ]
     for i, (label, value, color) in enumerate(score_data):
         y = 0.9 - i * 0.18
@@ -551,12 +587,13 @@ def plot_marketing_dashboard(
     # === Middle right: Donut ===
     ax_donut = fig.add_subplot(gs[1, 2])
     state_counts = viewer_states.value_counts()
-    colors_donut = [STATE_COLORS.get(s, "#B4B2A9") for s in state_counts.index]
+    colors_donut = [STATE_COLORS.get(s, "#404040") for s in state_counts.index]
     labels_donut = [FRIENDLY_NAMES.get(s, s) for s in state_counts.index]
+    # Legacy white-on-white in donut
     wedges, texts, autotexts = ax_donut.pie(
         state_counts.values, labels=labels_donut, colors=colors_donut,
         autopct="%1.0f%%", pctdistance=0.75, startangle=90,
-        wedgeprops=dict(width=0.4, edgecolor="white", linewidth=2),
+        wedgeprops=dict(width=0.4, edgecolor=BG, linewidth=2),
     )
     for t in texts:
         t.set_fontsize(8)
@@ -576,9 +613,9 @@ def plot_marketing_dashboard(
         "ending": "\u25C6", "momentum_loss": "\u2198",
     }
     severity_colors = {
-        "strong": "#1D9E75", "moderate": "#378ADD", "notable": "#EF9F27",
-        "weak": "#E24B4A", "concerning": "#E24B4A", "warning": "#EF9F27",
-        "recovery": "#1D9E75",
+        "strong": COLORS["green"], "moderate": COLORS["blue"], "notable": COLORS["orange"],
+        "weak": COLORS["red"], "concerning": COLORS["red"], "warning": COLORS["orange"],
+        "recovery": COLORS["green"],
     }
 
     important_types = {"hook", "engagement_peak", "engagement_dip", "emotional_peak", "momentum_loss", "ending"}
@@ -594,7 +631,7 @@ def plot_marketing_dashboard(
         if y < 0:
             break
         icon = icon_map.get(m["type"], "\u2022")
-        color = severity_colors.get(m["severity"], "#888780")
+        color = severity_colors.get(m["severity"], "#525252")
         video_start = max(0, m["start"] - hrf_lag)
         video_end = max(0, m["end"] - hrf_lag)
         time_str = (
@@ -604,8 +641,8 @@ def plot_marketing_dashboard(
         )
         ax_moments.text(0.02, y, icon, fontsize=14, va="center", color=color, transform=ax_moments.transAxes)
         ax_moments.text(0.05, y, time_str, fontsize=10, va="center", fontfamily="monospace", transform=ax_moments.transAxes)
-        ax_moments.text(0.18, y, m["detail"], fontsize=10, va="center", transform=ax_moments.transAxes, color="#333333")
-        badge_color = "#1D9E75" if m["score"] > 60 else ("#EF9F27" if m["score"] > 35 else "#E24B4A")
+        ax_moments.text(0.18, y, m["detail"], fontsize=10, va="center", transform=ax_moments.transAxes, color="#999")
+        badge_color = COLORS["green"] if m["score"] > 60 else (COLORS["orange"] if m["score"] > 35 else COLORS["red"])
         ax_moments.text(0.95, y, f"{m['score']:.0f}", fontsize=11, va="center", ha="right", fontweight="bold", color=badge_color, transform=ax_moments.transAxes)
 
     fig.suptitle("Neural Focus Group Report", fontsize=16, fontweight="bold", y=0.98)
@@ -625,8 +662,8 @@ def plot_advanced_analysis(metrics_normalized, memory_score, mem_peaks, T, out_p
 
     # Track 1: Novelty
     ax = axes[0]
-    ax.plot(time, metrics_normalized["novelty"], color="#EF9F27", linewidth=1.5, label="Visual change (editing)", alpha=0.8)
-    ax.axhline(50, color="gray", linewidth=0.5, linestyle="--", alpha=0.3)
+    ax.plot(time, metrics_normalized["novelty"], color=COLORS["orange"], linewidth=1.5, label="Visual change (editing)", alpha=0.8)
+    ax.axhline(50, color=SUBTLE, linewidth=0.5, linestyle="--", alpha=0.3)
     ax.set_ylabel("Surprise\nLevel", fontsize=10)
     ax.set_ylim(0, 100)
     ax.legend(fontsize=9, loc="upper right")
@@ -634,11 +671,11 @@ def plot_advanced_analysis(metrics_normalized, memory_score, mem_peaks, T, out_p
 
     # Track 2: Memory encoding
     ax = axes[1]
-    ax.fill_between(time, 0, metrics_normalized["memorability"], color="#0F6E56", alpha=0.3)
-    ax.plot(time, metrics_normalized["memorability"], color="#0F6E56", linewidth=1.5, label="Memorability score")
+    ax.fill_between(time, 0, metrics_normalized["memorability"], color=COLORS["teal"], alpha=0.2)
+    ax.plot(time, metrics_normalized["memorability"], color=COLORS["teal"], linewidth=1.5, label="Memorability score")
     if len(mem_peaks) > 0:
-        ax.scatter(mem_peaks, memory_score[mem_peaks], color="#0F6E56", s=80, zorder=5, marker="*", label="Peak memorable moments")
-    ax.axhline(50, color="gray", linewidth=0.5, linestyle="--", alpha=0.3)
+        ax.scatter(mem_peaks, memory_score[mem_peaks], color=COLORS["teal"], s=80, zorder=5, marker="*", label="Peak memorable moments")
+    ax.axhline(50, color=SUBTLE, linewidth=0.5, linestyle="--", alpha=0.3)
     ax.set_ylabel("Will they\nremember?", fontsize=10)
     ax.set_ylim(0, 100)
     ax.legend(fontsize=9, loc="upper right")
@@ -646,10 +683,10 @@ def plot_advanced_analysis(metrics_normalized, memory_score, mem_peaks, T, out_p
 
     # Track 3: Temporal entropy
     ax = axes[2]
-    ax.fill_between(time, 0, metrics_normalized["temporal_entropy"], color="#534AB7", alpha=0.2)
-    ax.plot(time, metrics_normalized["temporal_entropy"], color="#534AB7", linewidth=1.5, label="Brain dynamism")
-    ax.axhline(30, color="#E24B4A", linewidth=0.8, linestyle=":", alpha=0.5, label="Too flat (boring)")
-    ax.axhline(80, color="#EF9F27", linewidth=0.8, linestyle=":", alpha=0.5, label="Too chaotic")
+    ax.fill_between(time, 0, metrics_normalized["temporal_entropy"], color=COLORS["purple"], alpha=0.15)
+    ax.plot(time, metrics_normalized["temporal_entropy"], color=COLORS["purple"], linewidth=1.5, label="Brain dynamism")
+    ax.axhline(30, color=COLORS["red"], linewidth=0.8, linestyle=":", alpha=0.5, label="Too flat (boring)")
+    ax.axhline(80, color=COLORS["orange"], linewidth=0.8, linestyle=":", alpha=0.5, label="Too chaotic")
     ax.set_ylabel("Brain\nDynamism", fontsize=10)
     ax.set_ylim(0, 100)
     ax.set_xlabel("Time (seconds)", fontsize=11)

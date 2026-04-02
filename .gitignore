@@ -10,3 +10,8 @@ venv/
 ENV/
 .git/
 results/
+jobs/
+.pytest_cache/
+dist/
+build/
+*.egg-info/

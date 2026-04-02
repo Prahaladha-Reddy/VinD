@@ -1,17 +1,40 @@
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
 [project]
 name = "vind"
 version = "0.1.0"
-description = "Add your description here"
+description = "Neural focus-group analysis for TRIBE brain-activity predictions."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "fastapi>=0.135.2",
     "hmmlearn>=0.3.3",
+    "jinja2>=3.1.6",
+    "markdown>=3.10.2",
     "matplotlib>=3.10.8",
+    "modal>=1.4.1",
     "nibabel>=5.4.2",
     "nilearn>=0.13.1",
     "nimare>=0.11.2",
+    "numpy>=2.3.0",
     "pandas>=3.0.2",
+    "python-multipart>=0.0.22",
     "scikit-learn>=1.8.0",
     "scipy>=1.17.1",
     "seaborn>=0.13.2",
+    "uvicorn>=0.42.0",
 ]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.4.0",
+]
+
+[project.scripts]
+vind-analyze = "vinD.cli:main"
+vind-tribe = "run_tribe:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["vinD"]
